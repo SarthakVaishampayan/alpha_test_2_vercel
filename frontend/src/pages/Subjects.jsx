@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+const API = import.meta.env.VITE_API_URL;
 import {
   Plus, Trash2, ChevronDown, ChevronUp,
   CheckCircle, Circle, X, BookOpen
@@ -77,8 +78,8 @@ const Subjects = () => {
       try {
         const headers = { Authorization: `Bearer ${token}` };
         const [sRes, rRes] = await Promise.all([
-          fetch('http://localhost:5000/api/subjects',  { headers }),
-          fetch('http://localhost:5000/api/reminders', { headers }),
+          fetch(`${API}/api/subjects`,  { headers }),
+          fetch(`${API}/api/reminders`, { headers }),
         ]);
         const [sData, rData] = await Promise.all([sRes.json(), rRes.json()]);
         if (sData.success) setSubjects(sData.subjects);
@@ -97,7 +98,7 @@ const Subjects = () => {
   const handleAddSubject = async (e) => {
     e.preventDefault();
     try {
-      const res  = await fetch('http://localhost:5000/api/subjects', {
+      const res  = await fetch(`${API}/api/subjects`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body:    JSON.stringify(form),

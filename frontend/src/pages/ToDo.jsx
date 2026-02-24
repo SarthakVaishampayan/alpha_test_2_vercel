@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+const API = import.meta.env.VITE_API_URL;
 import {
   CheckCircle2, Circle, Plus, Trash2, Calendar
 } from 'lucide-react';
@@ -15,8 +16,8 @@ const Todo = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const [tRes, rRes] = await Promise.all([
-        fetch('http://localhost:5000/api/tasks', { headers }),
-        fetch('http://localhost:5000/api/reminders', { headers }),
+        fetch(`${API}/api/tasks`, { headers }),
+        fetch(`${API}/api/reminders`, { headers }),
       ]);
       const [tData, rData] = await Promise.all([tRes.json(), rRes.json()]);
       if (tData.success) setTasks(tData.tasks);
@@ -33,7 +34,7 @@ const Todo = () => {
   const addTask = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    await fetch('http://localhost:5000/api/tasks', {
+    await fetch(`${API}/api/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ text: input }),

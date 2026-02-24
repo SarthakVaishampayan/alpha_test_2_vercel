@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLiveLocalDay } from '../utils/date';
 import { useNotification } from '../context/NotificationContext';
+const API = import.meta.env.VITE_API_URL;
 import {
   Target,
   Flame,
@@ -88,7 +89,7 @@ const StudyGoalCard = () => {
 
       const [gRes, sRes] = await Promise.all([
         fetch(`http://localhost:5000/api/daily-goal/day?date=${dateStr}`, { headers }),
-        fetch('http://localhost:5000/api/daily-goal/streak', { headers }),
+        fetch(`${API}/api/daily-goal/streak`, { headers }),
       ]);
 
       const [gData, sData] = await Promise.all([gRes.json(), sRes.json()]);
@@ -186,7 +187,7 @@ const StudyGoalCard = () => {
       setBusy(true);
       setLoading(true);
 
-      const res = await fetch('http://localhost:5000/api/daily-goal', {
+      const res = await fetch(`${API}/api/daily-goal'`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ goalSeconds: sec, targetDate: selectedDate }),

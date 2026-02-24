@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+const API = import.meta.env.VITE_API_URL;
 import {
   ClipboardList, Plus, Trash2, X, BookOpen, Link2, ExternalLink
 } from 'lucide-react';
@@ -47,7 +48,7 @@ const YourSpace = () => {
   const fetchLinks = async () => {
     try {
       setLinksLoading(true);
-      const res = await fetch('http://localhost:5000/api/links', {
+      const res = await fetch(`${API}/api/links`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -67,8 +68,8 @@ const YourSpace = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [sRes, rRes] = await Promise.all([
-        fetch('http://localhost:5000/api/subjects', { headers }),
-        fetch('http://localhost:5000/api/reminders', { headers }),
+        fetch(`${API}/api/subjects`, { headers }),
+        fetch(`${API}/api/reminders`, { headers }),
       ]);
 
       const [sData, rData] = await Promise.all([sRes.json(), rRes.json()]);
@@ -151,7 +152,7 @@ const YourSpace = () => {
 
     try {
       setMarksLoading(true);
-      const res = await fetch('http://localhost:5000/api/marks', {
+      const res = await fetch(`${API}/api/marks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -167,7 +168,7 @@ const YourSpace = () => {
       const data = await res.json();
       if (res.ok && data?.success) {
         notifySuccess('Marks entry added.');
-        const listRes = await fetch(`http://localhost:5000/api/marks?subjectId=${marksSubject._id}`, {
+        const listRes = await fetch(`${API}/api/marks?subjectId=${marksSubject._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const listData = await listRes.json();
@@ -188,7 +189,7 @@ const YourSpace = () => {
     if (!marksSubject) return;
     try {
       setMarksLoading(true);
-      const res = await fetch(`http://localhost:5000/api/marks/${markId}`, {
+      const res = await fetch(`${API}/api/marks/${markId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -231,7 +232,7 @@ const YourSpace = () => {
 
     try {
       setLinksLoading(true);
-      const res = await fetch('http://localhost:5000/api/links', {
+      const res = await fetch(`${API}/api/links`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title, url, description }),
@@ -255,7 +256,7 @@ const YourSpace = () => {
   const deleteLink = async (id) => {
     try {
       setLinksLoading(true);
-      const res = await fetch(`http://localhost:5000/api/links/${id}`, {
+      const res = await fetch(`${API}/api/links/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

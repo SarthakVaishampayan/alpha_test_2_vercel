@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+const API = import.meta.env.VITE_API_URL;
 import {
   Mail, Github, Linkedin, Send, Bug, MessageSquare, Sparkles,
   Timer, BarChart3, CheckCircle2, CalendarDays, ListChecks,
@@ -29,7 +30,7 @@ const AboutUs = () => {
   // Fetch reminders so Navbar can show notification bell (same as all other pages)
   useEffect(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/reminders', {
+    fetch(`${API}/api/reminders`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
