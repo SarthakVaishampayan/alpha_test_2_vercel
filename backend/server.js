@@ -15,72 +15,82 @@ import marksRoutes from "./routes/marks.js";
 import linksRoutes from "./routes/links.js";
 
 dotenv.config();
+
 const app = express();
 
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//   })
-// );
-
-app.use(express.json());
-// CORS (local + production)
-// - Set CLIENT_URL in Render to your Vercel URL, e.g. https://studybuddy-alpha.vercel.app
-// - This also allows localhost for dev
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+// Set CLIENT_URL in Vercel env to your deployed frontend URL
+// e.g. https://studybuddy.vercel.app
 const allowedOrigins = [
-  process.env.CLIENT_URL,         // your deployed frontend URL
-  "http://localhost:5173",        // local Vite
+  process.env.CLIENT_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      // allow tools like curl/postman (no origin)
+      // Allow requests with no origin (curl, Postman, mobile apps)
       if (!origin) return cb(null, true);
-
-      // allow listed origins
       if (allowedOrigins.includes(origin)) return cb(null, true);
-
       return cb(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
-// ----- Database Connection -----
+app.use(express.json());
 
-
-// const connectDB = async () => {
-//   try {
-//     const conn = await mongoose.connect(
-//       process.env.MONGODB_URI || "mongodb://localhost:27017/studybuddy"
-//     );
-//     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-//   } catch (error) {
-//     console.error(`❌ MongoDB Error: ${error.message}`);
-//     process.exit(1);
-//   }
-// };
+// ─── MongoDB Connection (serverless-safe with caching) ────────────────────────
+// In serverless environments, module state is reused between warm invocations.
+// We cache the connection so we don't open a new one on every request.
+let isConnected = false;
 
 const connectDB = async () => {
+  if (isConnected && mongoose.connection.readyState === 1) {
+    return; // Already connected — reuse the existing connection
+  }
+
+  const mongoUri =
+    process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/studybuddy";
+
   try {
-    const mongoUri =
-      process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/studybuddy";
+    mongoose.set("strictQuery", false);
 
-    const conn = await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, {
+      // These settings help with serverless connection reuse
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`🗄️  DB Name: ${conn.connection.name}`);
+    isConnected = true;
+    console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
+    console.log(`🗄️  DB Name: ${mongoose.connection.name}`);
   } catch (error) {
-    console.error(`❌ MongoDB Error: ${error.message}`);
-    process.exit(1);
+    isConnected = false;
+    console.error(`❌ MongoDB Connection Error: ${error.message}`);
+    // Do NOT call process.exit() — in serverless this kills the function host
+    throw error;
   }
 };
 
-// API Routes
+// Middleware: ensure DB is connected before every API request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DB middleware error:", error.message);
+    res.status(503).json({
+      success: false,
+      message: "Database unavailable. Please try again later.",
+    });
+  }
+});
+
+// ─── API Routes ───────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
 app.use("/api/sessions", sessionRoutes);
@@ -88,27 +98,57 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/daily-goal", dailyGoalRoutes);
-
-// NEW
 app.use("/api/marks", marksRoutes);
 app.use("/api/links", linksRoutes);
 
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "online",
     message: "StudyBuddy API is running",
-    timestamp: new Date(),
+    environment: process.env.NODE_ENV || "development",
+    dbState:
+      mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString(),
   });
 });
 
-const PORT = process.env.PORT || 5000;
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🧪 Health: http://localhost:${PORT}/api/health`);
-    console.log(
-      `🌐 Allowed origins: ${allowedOrigins.length ? allowedOrigins.join(", ") : "(none set)"}`
-    );
-  });
+// ─── 404 fallback for unknown API routes ─────────────────────────────────────
+app.use("/api/*", (req, res) => {
+  res.status(404).json({ success: false, message: "API route not found" });
 });
+
+// ─── Global error handler ─────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({ success: false, message: "Internal server error" });
+});
+
+// ─── Local Dev Server ─────────────────────────────────────────────────────────
+// process.env.VERCEL is automatically set to "1" by Vercel's build system.
+// When running locally with `npm run dev` or `npm start`, it won't be set,
+// so the server will start normally.
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`🧪 Health: http://localhost:${PORT}/api/health`);
+        console.log(
+          `🌐 Allowed origins: ${
+            allowedOrigins.length ? allowedOrigins.join(", ") : "(none set)"
+          }`,
+        );
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to start server:", err.message);
+    });
+}
+
+// ─── Export for Vercel Serverless ─────────────────────────────────────────────
+// Vercel's @vercel/node runtime imports this file and calls the default export
+// as a serverless function handler (it's compatible with Express apps).
+export default app;

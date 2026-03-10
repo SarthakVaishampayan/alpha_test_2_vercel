@@ -1,3 +1,12 @@
+# Environment Variables — never commit real secrets
+.env
+.env.local
+.env.development
+.env.production
+
+# Vercel
+.vercel
+
 # Logs
 logs
 *.log
@@ -10,7 +19,6 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-*.local
 
 # Editor directories and files
 .vscode/*
