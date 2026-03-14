@@ -112,7 +112,7 @@ const YourSpace = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/marks?subjectId=${subjectId}`,
+        `${API}/api/marks?subjectId=${subjectId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },

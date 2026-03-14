@@ -105,7 +105,7 @@ const StudyGoalCard = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [gRes, sRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/daily-goal/day?date=${dateStr}`, {
+          fetch(`${API}/api/daily-goal/day?date=${dateStr}`, {
             headers,
           }),
           fetch(`${API}/api/daily-goal/streak`, { headers }),
@@ -144,7 +144,7 @@ const StudyGoalCard = () => {
       try {
         const headers = { Authorization: `Bearer ${token}` };
         const res = await fetch(
-          `http://localhost:5000/api/daily-goal/month?month=${month}&year=${year}`,
+          `${API}/api/daily-goal/month?month=${month}&year=${year}`,
           { headers },
         );
         const data = await res.json();
@@ -215,7 +215,7 @@ const StudyGoalCard = () => {
       setBusy(true);
       setLoading(true);
 
-      const res = await fetch(`${API}/api/daily-goal'`, {
+      const res = await fetch(`${API}/api/daily-goal`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

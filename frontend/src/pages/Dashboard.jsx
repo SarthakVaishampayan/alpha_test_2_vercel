@@ -185,7 +185,7 @@ const Dashboard = () => {
   };
 
   const handleToggleHabit = async (id) => {
-    await fetch(`http://localhost:5000/api/habits/${id}/toggle`, {
+    await fetch(`${API}/api/habits/${id}/toggle`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -194,7 +194,7 @@ const Dashboard = () => {
 
   const handleDeleteHabit = async () => {
     if (!deleteHabitId) return;
-    await fetch(`http://localhost:5000/api/habits/${deleteHabitId}`, {
+    await fetch(`${API}/api/habits/${deleteHabitId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
