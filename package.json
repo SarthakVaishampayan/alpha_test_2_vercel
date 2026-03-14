@@ -1,0 +1,10 @@
+{
+  "name": "studybuddy-root",
+  "version": "1.0.0",
+  "description": "Root package.json to forward Render deployment to the backend folder",
+  "scripts": {
+    "postinstall": "cd backend && npm install",
+    "build": "cd backend && npm install",
+    "start": "cd backend && npm start"
+  }
+}
