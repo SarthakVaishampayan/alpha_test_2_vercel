@@ -1,15 +1,22 @@
 // File: StudyBuddy/frontend/src/pages/Analytics.jsx
-import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
-const API = import.meta.env.VITE_API_URL;
-import { useLiveLocalDay, yyyyMmDdLocal } from '../utils/date';
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
+const API = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
+import { useLiveLocalDay, yyyyMmDdLocal } from "../utils/date";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Cell, Legend
-} from 'recharts';
-import { Clock, Calendar, Flame, TrendingUp } from 'lucide-react';
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  Legend,
+} from "recharts";
+import { Clock, Calendar, Flame, TrendingUp } from "lucide-react";
 
 const Analytics = () => {
   const { token } = useAuth();
@@ -49,12 +56,18 @@ const Analytics = () => {
       ]);
 
       const [wData, rData, sData, gwData, hData] = await Promise.all([
-        wRes.json(), rRes.json(), sRes.json(), gwRes.json(), hRes.json(),
+        wRes.json(),
+        rRes.json(),
+        sRes.json(),
+        gwRes.json(),
+        hRes.json(),
       ]);
 
       if (wData?.success && Array.isArray(wData.graphData)) {
         setWeeklyData(wData.graphData);
-        setTotalSec(wData.graphData.reduce((acc, d) => acc + (d.rawSeconds || 0), 0));
+        setTotalSec(
+          wData.graphData.reduce((acc, d) => acc + (d.rawSeconds || 0), 0),
+        );
       } else {
         setWeeklyData([]);
         setTotalSec(0);
@@ -75,7 +88,11 @@ const Analytics = () => {
       else setGoalWeekly([]);
 
       // Habit completion rate — avg % of habits completed per day this week
-      if (hData?.success && Array.isArray(hData.habits) && hData.habits.length > 0) {
+      if (
+        hData?.success &&
+        Array.isArray(hData.habits) &&
+        hData.habits.length > 0
+      ) {
         const habits = hData.habits;
         const totalHabits = habits.length;
 
@@ -93,18 +110,22 @@ const Analytics = () => {
           habits.forEach((h) => {
             // backend returns completedDates as Date objects or strings; normalize safely
             const cds = Array.isArray(h.completedDates) ? h.completedDates : [];
-            const doneThatDay = cds.some((cd) => yyyyMmDdLocal(new Date(cd)) === ds);
+            const doneThatDay = cds.some(
+              (cd) => yyyyMmDdLocal(new Date(cd)) === ds,
+            );
             if (doneThatDay) totalDone += 1;
           });
         }
 
-        setHabitRate(totalPossible > 0 ? Math.round((totalDone / totalPossible) * 100) : 0);
+        setHabitRate(
+          totalPossible > 0 ? Math.round((totalDone / totalPossible) * 100) : 0,
+        );
       } else {
         setHabitRate(0);
       }
     } catch (err) {
       console.error(err);
-      notifyInfo('Failed to load analytics data.');
+      notifyInfo("Failed to load analytics data.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +144,7 @@ const Analytics = () => {
     );
   }
 
-  const streakDays = weeklyData.filter(d => (d.rawSeconds || 0) > 0).length;
+  const streakDays = weeklyData.filter((d) => (d.rawSeconds || 0) > 0).length;
 
   return (
     <div className="bg-light min-vh-100 pb-5">
@@ -137,7 +158,9 @@ const Analytics = () => {
             <div className="bg-white p-4 rounded-4 border shadow-sm">
               <div className="d-flex align-items-center gap-2 mb-2 text-primary">
                 <Clock size={18} />
-                <span className="small fw-bold text-uppercase">Weekly Total</span>
+                <span className="small fw-bold text-uppercase">
+                  Weekly Total
+                </span>
               </div>
               <h4 className="fw-bold text-dark mb-0">{formatHms(totalSec)}</h4>
               <p className="text-muted small mt-1 mb-0">Focus time this week</p>
@@ -148,18 +171,27 @@ const Analytics = () => {
             <div className="bg-white p-4 rounded-4 border shadow-sm">
               <div className="d-flex align-items-center gap-2 mb-2 text-success">
                 <Calendar size={18} />
-                <span className="small fw-bold text-uppercase">Consistency</span>
+                <span className="small fw-bold text-uppercase">
+                  Consistency
+                </span>
               </div>
               <h4 className="fw-bold text-dark mb-0">{streakDays} / 7 Days</h4>
-              <p className="text-muted small mt-1 mb-0">Days with study activity</p>
+              <p className="text-muted small mt-1 mb-0">
+                Days with study activity
+              </p>
             </div>
           </div>
 
           <div className="col-md-3">
             <div className="bg-white p-4 rounded-4 border shadow-sm">
-              <div className="d-flex align-items-center gap-2 mb-2" style={{ color: '#ea580c' }}>
+              <div
+                className="d-flex align-items-center gap-2 mb-2"
+                style={{ color: "#ea580c" }}
+              >
                 <Flame size={18} />
-                <span className="small fw-bold text-uppercase">Goal Streak</span>
+                <span className="small fw-bold text-uppercase">
+                  Goal Streak
+                </span>
               </div>
               <h4 className="fw-bold text-dark mb-0">{goalStreak} Days</h4>
               <p className="text-muted small mt-1 mb-0">
@@ -175,17 +207,23 @@ const Analytics = () => {
                 <span className="small fw-bold text-uppercase">Habit Rate</span>
               </div>
               <h4 className="fw-bold text-dark mb-0">{habitRate}%</h4>
-              <p className="text-muted small mt-1 mb-0">Avg habits done / day</p>
+              <p className="text-muted small mt-1 mb-0">
+                Avg habits done / day
+              </p>
             </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-4 border shadow-sm mb-4">
           <h6 className="fw-bold mb-4">Focus Duration Trend (Hours)</h6>
-          <div style={{ width: '100%', height: 300 }}>
+          <div style={{ width: "100%", height: 300 }}>
             <ResponsiveContainer>
               <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#f1f1f1"
+                />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
@@ -193,10 +231,25 @@ const Analytics = () => {
                   height={50}
                   tick={({ x, y, payload }) => (
                     <g transform={`translate(${x},${y})`}>
-                      <text x={0} y={10} dy={16} textAnchor="middle" fill="#111" fontSize={12} fontWeight="bold">
+                      <text
+                        x={0}
+                        y={10}
+                        dy={16}
+                        textAnchor="middle"
+                        fill="#111"
+                        fontSize={12}
+                        fontWeight="bold"
+                      >
                         {payload.value}
                       </text>
-                      <text x={0} y={28} dy={16} textAnchor="middle" fill="#6b7280" fontSize={11}>
+                      <text
+                        x={0}
+                        y={28}
+                        dy={16}
+                        textAnchor="middle"
+                        fill="#6b7280"
+                        fontSize={11}
+                      >
                         {weeklyData[payload.index]?.date}
                       </text>
                     </g>
@@ -204,7 +257,7 @@ const Analytics = () => {
                 />
                 <YAxis hide />
                 <Tooltip
-                  cursor={{ fill: '#f9fafb' }}
+                  cursor={{ fill: "#f9fafb" }}
                   content={({ active, payload }) =>
                     active && payload && payload.length ? (
                       <div className="bg-white p-3 border rounded-3 shadow-sm small">
@@ -222,7 +275,9 @@ const Analytics = () => {
                   {weeklyData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={index === weeklyData.length - 1 ? '#8b5cf6' : '#ddd6fe'}
+                      fill={
+                        index === weeklyData.length - 1 ? "#8b5cf6" : "#ddd6fe"
+                      }
                     />
                   ))}
                 </Bar>
@@ -231,52 +286,71 @@ const Analytics = () => {
           </div>
         </div>
 
-        {goalWeekly.length > 0 && goalWeekly.some(d => (d.goalSeconds || 0) > 0) && (
-          <div className="bg-white p-4 rounded-4 border shadow-sm">
-            <h6 className="fw-bold mb-1">Goal vs Actual Study Time</h6>
-            <p className="text-muted small mb-4">
-              How your daily logged time compares to your set goals.
-            </p>
-            <div style={{ width: '100%', height: 280 }}>
-              <ResponsiveContainer>
-                <BarChart data={goalWeekly} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                  <YAxis
-                    hide={false}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={v => `${v}h`}
-                    width={30}
-                  />
-                  <Tooltip
-                    content={({ active, payload, label }) =>
-                      active && payload && payload.length ? (
-                        <div className="bg-white p-3 border rounded-3 shadow-sm small">
-                          <div className="fw-bold mb-1">{label}</div>
-                          {payload.map((p, i) => (
-                            <div key={i} style={{ color: p.fill }}>
-                              {p.name}: <strong>{p.value}h</strong>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null
-                    }
-                  />
-                  <Legend
-                    iconType="circle"
-                    iconSize={10}
-                    formatter={(value) => (
-                      <span style={{ fontSize: '12px', color: '#6b7280' }}>{value}</span>
-                    )}
-                  />
-                  <Bar dataKey="goalHours" name="Goal" fill="#ddd6fe" radius={[4, 4, 0, 0]} barSize={28} />
-                  <Bar dataKey="loggedHours" name="Actual" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={28} />
-                </BarChart>
-              </ResponsiveContainer>
+        {goalWeekly.length > 0 &&
+          goalWeekly.some((d) => (d.goalSeconds || 0) > 0) && (
+            <div className="bg-white p-4 rounded-4 border shadow-sm">
+              <h6 className="fw-bold mb-1">Goal vs Actual Study Time</h6>
+              <p className="text-muted small mb-4">
+                How your daily logged time compares to your set goals.
+              </p>
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer>
+                  <BarChart data={goalWeekly} barGap={4}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#f1f1f1"
+                    />
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                    <YAxis
+                      hide={false}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => `${v}h`}
+                      width={30}
+                    />
+                    <Tooltip
+                      content={({ active, payload, label }) =>
+                        active && payload && payload.length ? (
+                          <div className="bg-white p-3 border rounded-3 shadow-sm small">
+                            <div className="fw-bold mb-1">{label}</div>
+                            {payload.map((p, i) => (
+                              <div key={i} style={{ color: p.fill }}>
+                                {p.name}: <strong>{p.value}h</strong>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null
+                      }
+                    />
+                    <Legend
+                      iconType="circle"
+                      iconSize={10}
+                      formatter={(value) => (
+                        <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    <Bar
+                      dataKey="goalHours"
+                      name="Goal"
+                      fill="#ddd6fe"
+                      radius={[4, 4, 0, 0]}
+                      barSize={28}
+                    />
+                    <Bar
+                      dataKey="loggedHours"
+                      name="Actual"
+                      fill="#8b5cf6"
+                      radius={[4, 4, 0, 0]}
+                      barSize={28}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

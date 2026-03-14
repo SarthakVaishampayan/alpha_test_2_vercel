@@ -1,22 +1,24 @@
-// File: frontend/src/lib/api.js
-// ─────────────────────────────────────────────────────────────────────────────
 // Shared API helper used across the app.
 //
-// VITE_API_URL is the base URL of the backend:
-//   - Local dev:  http://localhost:5000   (set in frontend/.env.local)
-//   - Production: https://your-backend.vercel.app  (set in Vercel dashboard)
+// For local development, set:
+//   VITE_API_URL=http://localhost:5000
 //
-// All pages use `import.meta.env.VITE_API_URL` directly, so we keep the same
-// variable here for consistency (previously this file used VITE_API_BASE).
-// ─────────────────────────────────────────────────────────────────────────────
+// For single-project Vercel monorepo deploys, leave VITE_API_URL unset or empty
+// so requests default to the same origin and hit /api/* on the same domain.
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const rawApiBase = import.meta.env.VITE_API_URL;
+const API_BASE =
+  typeof rawApiBase === "string" && rawApiBase.trim().length > 0
+    ? rawApiBase.trim().replace(/\/+$/, "")
+    : "";
 
 export const apiJson = async (
   path,
   { token, method = "GET", body, extraHeaders } = {},
 ) => {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  const res = await fetch(`${API_BASE}${normalizedPath}`, {
     method,
     headers: {
       ...(body ? { "Content-Type": "application/json" } : {}),
@@ -35,3 +37,5 @@ export const apiJson = async (
 
   return { res, data };
 };
+
+export { API_BASE };

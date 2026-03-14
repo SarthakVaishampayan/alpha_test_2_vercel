@@ -27,12 +27,19 @@ const allowedOrigins = [
   "http://localhost:3000",
 ].filter(Boolean);
 
+const allowAllOrigins = allowedOrigins.includes("*");
+
 app.use(
   cors({
     origin: (origin, cb) => {
-      // Allow requests with no origin (curl, Postman, mobile apps)
+      // Allow requests with no origin (curl, Postman, mobile apps, same-origin server calls)
       if (!origin) return cb(null, true);
+
+      // Temporary bootstrap mode for first Vercel deploy
+      if (allowAllOrigins) return cb(null, true);
+
       if (allowedOrigins.includes(origin)) return cb(null, true);
+
       return cb(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,

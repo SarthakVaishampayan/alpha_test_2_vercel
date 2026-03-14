@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import { useAuth } from '../context/AuthContext';
-const API = import.meta.env.VITE_API_URL;
-import {
-  CheckCircle2, Circle, Plus, Trash2, Calendar
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+const API = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
+import { CheckCircle2, Circle, Plus, Trash2, Calendar } from "lucide-react";
 
 const Todo = () => {
   const { token } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [reminders, setReminders] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
 
   const fetchAllData = async () => {
     try {
@@ -35,33 +33,36 @@ const Todo = () => {
     e.preventDefault();
     if (!input.trim()) return;
     await fetch(`${API}/api/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ text: input }),
     });
-    setInput('');
+    setInput("");
     fetchAllData();
   };
 
   const deleteTask = async (id) => {
-    await fetch(`http://localhost:5000/api/tasks/${id}`, {
-      method: 'DELETE',
+    await fetch(`${API}/api/tasks/${id}`, {
+      method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchAllData();
   };
 
   const deleteReminder = async (id) => {
-    await fetch(`http://localhost:5000/api/reminders/${id}`, {
-      method: 'DELETE',
+    await fetch(`${API}/api/reminders/${id}`, {
+      method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchAllData();
   };
 
   const toggleTask = async (id) => {
-    await fetch(`http://localhost:5000/api/tasks/${id}/toggle`, {
-      method: 'PATCH',
+    await fetch(`${API}/api/tasks/${id}/toggle`, {
+      method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchAllData();
@@ -93,7 +94,10 @@ const Todo = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                 />
-                <button type="submit" className="btn btn-primary px-3 rounded-3">
+                <button
+                  type="submit"
+                  className="btn btn-primary px-3 rounded-3"
+                >
                   <Plus />
                 </button>
               </form>
@@ -164,28 +168,28 @@ const Todo = () => {
                         key={r._id}
                         className={`p-3 border rounded-4 ${
                           isOverdue
-                            ? 'bg-danger bg-opacity-10 border-danger'
-                            : 'bg-light'
+                            ? "bg-danger bg-opacity-10 border-danger"
+                            : "bg-light"
                         }`}
                       >
                         <div className="d-flex justify-content-between align-items-start">
                           <div>
                             <div
                               className={`fw-bold ${
-                                isOverdue ? 'text-danger' : ''
+                                isOverdue ? "text-danger" : ""
                               }`}
                             >
                               {r.text}
                             </div>
                             <div className="small text-muted d-flex align-items-center gap-1 mt-1">
-                              <Calendar size={14} />{' '}
+                              <Calendar size={14} />{" "}
                               {new Date(r.deadline).toLocaleDateString(
                                 undefined,
                                 {
-                                  weekday: 'short',
-                                  month: 'short',
-                                  day: 'numeric',
-                                }
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                },
                               )}
                             </div>
                           </div>

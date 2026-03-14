@@ -1,29 +1,39 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-import Sidebar    from './components/Sidebar';
-import Dashboard  from './pages/Dashboard';
-import Analytics  from './pages/Analytics';
-import Todo       from './pages/ToDo';
-import Profile    from './pages/Profile';
-import Settings   from './pages/Settings';
-import Subjects   from './pages/Subjects';
-import Login      from './pages/Login';
-import Register   from './pages/Register';
-import YourSpace  from './pages/YourSpace';
-import AboutUs    from './pages/AboutUs';
-const API = import.meta.env.VITE_API_URL;
+import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
+import Todo from "./pages/ToDo";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Subjects from "./pages/Subjects";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import YourSpace from "./pages/YourSpace";
+import AboutUs from "./pages/AboutUs";
+const API = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
 
-import { AuthProvider, useAuth }                   from './context/AuthContext';
-import { TimerProvider, useTimer }                 from './context/TimerContext';
-import { NotificationProvider, useNotification }   from './context/NotificationContext';
-import NotificationToast                           from './components/NotificationToast';
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { TimerProvider, useTimer } from "./context/TimerContext";
+import {
+  NotificationProvider,
+  useNotification,
+} from "./context/NotificationContext";
+import NotificationToast from "./components/NotificationToast";
 
-import { Save, RotateCcw, Trash2, AlertCircle } from 'lucide-react';
+import { Save, RotateCcw, Trash2, AlertCircle } from "lucide-react";
 
 const Placeholder = ({ title }) => (
   <div className="p-5 text-center">
     <h1 className="fw-bold text-dark mb-3">{title}</h1>
-    <p className="text-muted lead">This feature is currently under development.</p>
+    <p className="text-muted lead">
+      This feature is currently under development.
+    </p>
     <div className="bg-white p-5 rounded-4 shadow-sm border mt-4 d-inline-block">
       <p className="mb-0 text-primary fw-bold">Coming Soon!</p>
     </div>
@@ -35,7 +45,7 @@ const MainLayout = ({ children }) => {
   return (
     <div className="d-flex min-vh-100 bg-light">
       {user && <Sidebar />}
-      <main className="flex-grow-1 overflow-auto" style={{ height: '100vh' }}>
+      <main className="flex-grow-1 overflow-auto" style={{ height: "100vh" }}>
         {children}
       </main>
     </div>
@@ -84,9 +94,9 @@ const GlobalTimerFinishModal = () => {
     }
     try {
       const res = await fetch(`${API}/api/sessions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ durationInSeconds: studied }),
@@ -95,56 +105,71 @@ const GlobalTimerFinishModal = () => {
         setSessionEnded(false);
         notifyInfo(`Logged ${formatHms(studied)} to study time.`);
       } else {
-        notifyInfo('Could not log session. Try again later.');
+        notifyInfo("Could not log session. Try again later.");
       }
     } catch (e) {
-      console.error('Failed to log session:', e);
-      notifyInfo('Failed to log session. Try again later.');
+      console.error("Failed to log session:", e);
+      notifyInfo("Failed to log session. Try again later.");
     }
   };
 
   if (!sessionEnded) return null;
 
   const studiedSec = getTimeStudied();
-  const remainingSec = mode === 'timer' ? elapsedTime : null;
-  const goalSec = mode === 'timer' ? initialTime : null;
+  const remainingSec = mode === "timer" ? elapsedTime : null;
+  const goalSec = mode === "timer" ? initialTime : null;
 
   return (
     <div
       className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-      style={{ zIndex: 9999, backdropFilter: 'blur(6px)' }}
+      style={{ zIndex: 9999, backdropFilter: "blur(6px)" }}
       onClick={() => setSessionEnded(false)}
     >
       <div
         className="bg-white p-4 rounded-4 shadow-lg"
-        style={{ width: 420, maxWidth: '92vw' }}
+        style={{ width: 420, maxWidth: "92vw" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center">
           <AlertCircle size={44} className="text-primary mb-2" />
           <h5 className="fw-bold mb-2">Session finished</h5>
           <p className="text-muted small mb-3">
-            Time studied:{' '}
+            Time studied:{" "}
             <span className="fw-bold text-dark">{formatHms(studiedSec)}</span>
-            {mode === 'timer' && (
+            {mode === "timer" && (
               <>
                 <br />
-                Goal:{' '}
-                <span className="fw-bold text-dark">{formatHms(goalSec)}</span>, Remaining:{' '}
-                <span className="fw-bold text-dark">{formatHms(remainingSec)}</span>
+                Goal:{" "}
+                <span className="fw-bold text-dark">{formatHms(goalSec)}</span>,
+                Remaining:{" "}
+                <span className="fw-bold text-dark">
+                  {formatHms(remainingSec)}
+                </span>
               </>
             )}
           </p>
         </div>
 
         <div className="d-grid gap-2">
-          <button className="btn btn-primary py-2 fw-bold rounded-3" onClick={handleLog} type="button">
+          <button
+            className="btn btn-primary py-2 fw-bold rounded-3"
+            onClick={handleLog}
+            type="button"
+          >
             <Save className="me-2" size={18} /> Log time
           </button>
-          <button className="btn btn-outline-secondary py-2 fw-bold rounded-3" onClick={restartSession} type="button">
+          <button
+            className="btn btn-outline-secondary py-2 fw-bold rounded-3"
+            onClick={restartSession}
+            type="button"
+          >
             <RotateCcw className="me-2" size={18} /> Restart
           </button>
-          <button className="btn btn-light py-2 fw-bold rounded-3 text-danger" onClick={discardSession} type="button">
+          <button
+            className="btn btn-light py-2 fw-bold rounded-3 text-danger"
+            onClick={discardSession}
+            type="button"
+          >
             <Trash2 className="me-2" size={18} /> Discard
           </button>
         </div>
@@ -167,16 +192,79 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                <Route path="/todo" element={<ProtectedRoute><Todo /></ProtectedRoute>} />
-                <Route path="/subjects" element={<ProtectedRoute><Subjects /></ProtectedRoute>} />
-                <Route path="/space" element={<ProtectedRoute><YourSpace /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="/about" element={<ProtectedRoute><AboutUs /></ProtectedRoute>} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/todo"
+                  element={
+                    <ProtectedRoute>
+                      <Todo />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/subjects"
+                  element={
+                    <ProtectedRoute>
+                      <Subjects />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/space"
+                  element={
+                    <ProtectedRoute>
+                      <YourSpace />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/about"
+                  element={
+                    <ProtectedRoute>
+                      <AboutUs />
+                    </ProtectedRoute>
+                  }
+                />
 
-                <Route path="/chats" element={<ProtectedRoute><Placeholder title="Study Chat" /></ProtectedRoute>} />
+                <Route
+                  path="/chats"
+                  element={
+                    <ProtectedRoute>
+                      <Placeholder title="Study Chat" />
+                    </ProtectedRoute>
+                  }
+                />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

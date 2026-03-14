@@ -1,39 +1,63 @@
 // File: StudyBuddy/frontend/src/pages/Dashboard.jsx
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import StudyGoalCard from '../components/StudyGoalCard';
-import HabitCalendarModal from '../components/HabitCalendarModal';
-import { useAuth } from '../context/AuthContext';
-import { useTimer } from '../context/TimerContext';
-import { useLiveLocalDay } from '../utils/date';
-const API = import.meta.env.VITE_API_URL;
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import StudyGoalCard from "../components/StudyGoalCard";
+import HabitCalendarModal from "../components/HabitCalendarModal";
+import { useAuth } from "../context/AuthContext";
+import { useTimer } from "../context/TimerContext";
+import { useLiveLocalDay } from "../utils/date";
+const API = (import.meta.env.VITE_API_URL || "").trim();
 
 import {
-  Play, Pause, Save, RotateCcw, Check, Plus, Trash2,
-  Calendar, AlertCircle, Clock, Hourglass, Flame
-} from 'lucide-react';
+  Play,
+  Pause,
+  Save,
+  RotateCcw,
+  Check,
+  Plus,
+  Trash2,
+  Calendar,
+  AlertCircle,
+  Clock,
+  Hourglass,
+  Flame,
+} from "lucide-react";
 
 import {
-  BarChart, Bar, XAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, YAxis
-} from 'recharts';
+  BarChart,
+  Bar,
+  XAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  YAxis,
+} from "recharts";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
 
   const {
-    elapsedTime, setElapsedTime,
-    timerRunning, setTimerRunning,
-    mode, setMode,
-    initialTime, setInitialTime,
+    elapsedTime,
+    setElapsedTime,
+    timerRunning,
+    setTimerRunning,
+    mode,
+    setMode,
+    initialTime,
+    setInitialTime,
     getTimeStudied,
   } = useTimer();
 
   // Data
   const [habits, setHabits] = useState([]);
-  const [studyStats, setStudyStats] = useState({ today: '0m 0s', totalSeconds: 0, percentChange: 0 });
+  const [studyStats, setStudyStats] = useState({
+    today: "0m 0s",
+    totalSeconds: 0,
+    percentChange: 0,
+  });
   const [pendingTasks, setPendingTasks] = useState(0);
   const [pendingReminders, setPendingReminders] = useState(0);
   const [reminders, setReminders] = useState([]);
@@ -51,9 +75,9 @@ const Dashboard = () => {
   const [calendarHabit, setCalendarHabit] = useState(null);
 
   // Forms
-  const [newHabitName, setNewHabitName] = useState('');
-  const [newTaskText, setNewTaskText] = useState('');
-  const [reminderForm, setReminderForm] = useState({ text: '', deadline: '' });
+  const [newHabitName, setNewHabitName] = useState("");
+  const [newTaskText, setNewTaskText] = useState("");
+  const [reminderForm, setReminderForm] = useState({ text: "", deadline: "" });
   const [timerInput, setTimerInput] = useState(60);
 
   // IMPORTANT: local live day string (YYYY-MM-DD) that flips at midnight IST
@@ -72,8 +96,9 @@ const Dashboard = () => {
     const hh = Math.floor(s / 3600);
     const mm = Math.floor((s % 3600) / 60);
     const ss = s % 60;
-    if (hh > 0) return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-    return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    if (hh > 0)
+      return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
   };
 
   const fetchData = async () => {
@@ -89,7 +114,11 @@ const Dashboard = () => {
       ]);
 
       const [hData, sData, wData, tData, rData] = await Promise.all([
-        hRes.json(), sRes.json(), wRes.json(), tRes.json(), rRes.json(),
+        hRes.json(),
+        sRes.json(),
+        wRes.json(),
+        tRes.json(),
+        rRes.json(),
       ]);
 
       if (hData?.success) setHabits(hData.habits || []);
@@ -107,7 +136,7 @@ const Dashboard = () => {
         setPendingReminders(rData.pendingCount ?? 0);
       }
     } catch (err) {
-      console.error('Dashboard fetchData error:', err);
+      console.error("Dashboard fetchData error:", err);
     }
   };
 
@@ -122,7 +151,7 @@ const Dashboard = () => {
     const minutes = Math.max(1, parseInt(timerInput || 0, 10));
     const seconds = minutes * 60;
 
-    setMode('timer');
+    setMode("timer");
     setInitialTime(seconds);
     setElapsedTime(seconds);
     setTimerRunning(true);
@@ -131,7 +160,7 @@ const Dashboard = () => {
 
   const switchToStopwatch = () => {
     setTimerRunning(false);
-    setMode('stopwatch');
+    setMode("stopwatch");
     setInitialTime(0);
     setElapsedTime(0);
   };
@@ -142,19 +171,22 @@ const Dashboard = () => {
     if (!newHabitName.trim()) return;
 
     await fetch(`${API}/api/habits`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ name: newHabitName.trim() }),
     });
 
-    setNewHabitName('');
+    setNewHabitName("");
     setShowHabitModal(false);
     fetchData();
   };
 
   const handleToggleHabit = async (id) => {
     await fetch(`http://localhost:5000/api/habits/${id}/toggle`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchData();
@@ -163,7 +195,7 @@ const Dashboard = () => {
   const handleDeleteHabit = async () => {
     if (!deleteHabitId) return;
     await fetch(`http://localhost:5000/api/habits/${deleteHabitId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     setDeleteHabitId(null);
@@ -175,12 +207,15 @@ const Dashboard = () => {
     if (!newTaskText.trim()) return;
 
     await fetch(`${API}/api/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ text: newTaskText.trim() }),
     });
 
-    setNewTaskText('');
+    setNewTaskText("");
     setShowTaskModal(false);
     fetchData();
   };
@@ -190,12 +225,18 @@ const Dashboard = () => {
     if (!reminderForm.text.trim() || !reminderForm.deadline) return;
 
     await fetch(`${API}/api/reminders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ text: reminderForm.text.trim(), deadline: reminderForm.deadline }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        text: reminderForm.text.trim(),
+        deadline: reminderForm.deadline,
+      }),
     });
 
-    setReminderForm({ text: '', deadline: '' });
+    setReminderForm({ text: "", deadline: "" });
     setShowReminderModal(false);
     fetchData();
   };
@@ -208,8 +249,11 @@ const Dashboard = () => {
     }
 
     const res = await fetch(`${API}/api/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ durationInSeconds: duration }),
     });
 
@@ -217,11 +261,11 @@ const Dashboard = () => {
       setShowLogDialog(false);
       setTimerRunning(false);
 
-      if (mode === 'stopwatch') setElapsedTime(0);
+      if (mode === "stopwatch") setElapsedTime(0);
       else setElapsedTime(initialTime || 0);
 
       fetchData();
-      window.dispatchEvent(new Event('study-session-logged'));
+      window.dispatchEvent(new Event("study-session-logged"));
     }
   };
 
@@ -231,7 +275,7 @@ const Dashboard = () => {
 
       <div className="p-4 px-lg-5">
         <h2 className="fw-bold mb-4 mt-3 text-dark">
-          Hello, {user?.name?.split(' ')[0] || 'Student'}! 👋
+          Hello, {user?.name?.split(" ")[0] || "Student"}! 👋
         </h2>
 
         {/* TOP TILES */}
@@ -240,7 +284,9 @@ const Dashboard = () => {
           <div className="col-md-3">
             <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
               <div className="d-flex justify-content-between align-items-start">
-                <h6 className="text-muted small fw-bold text-uppercase">Tasks Pending</h6>
+                <h6 className="text-muted small fw-bold text-uppercase">
+                  Tasks Pending
+                </h6>
                 <button
                   className="btn btn-sm btn-light border rounded-circle shadow-sm p-2"
                   onClick={() => setShowTaskModal(true)}
@@ -251,7 +297,11 @@ const Dashboard = () => {
                 </button>
               </div>
               <h1 className="fw-bold my-3 display-5">{pendingTasks}</h1>
-              <span className="text-primary small fw-bold" style={{ cursor: 'pointer' }} onClick={() => navigate('/todo')}>
+              <span
+                className="text-primary small fw-bold"
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/todo")}
+              >
                 View full list &rarr;
               </span>
             </div>
@@ -261,7 +311,9 @@ const Dashboard = () => {
           <div className="col-md-3">
             <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
               <div className="d-flex justify-content-between align-items-start">
-                <h6 className="text-muted small fw-bold text-uppercase">Reminders</h6>
+                <h6 className="text-muted small fw-bold text-uppercase">
+                  Reminders
+                </h6>
                 <button
                   className="btn btn-sm btn-light border rounded-circle shadow-sm p-2"
                   onClick={() => setShowReminderModal(true)}
@@ -271,8 +323,14 @@ const Dashboard = () => {
                   <Calendar size={16} className="text-danger" />
                 </button>
               </div>
-              <h1 className="fw-bold my-3 display-5 text-danger">{pendingReminders}</h1>
-              <span className="text-danger small fw-bold" style={{ cursor: 'pointer' }} onClick={() => navigate('/todo')}>
+              <h1 className="fw-bold my-3 display-5 text-danger">
+                {pendingReminders}
+              </h1>
+              <span
+                className="text-danger small fw-bold"
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/todo")}
+              >
                 Check deadlines &rarr;
               </span>
             </div>
@@ -281,10 +339,17 @@ const Dashboard = () => {
           {/* Study Today */}
           <div className="col-md-3">
             <div className="bg-white p-4 rounded-4 shadow-sm border h-100">
-              <h6 className="text-muted small fw-bold text-uppercase">Study Today</h6>
-              <h1 className="fw-bold text-primary my-3 display-6">{studyStats.today}</h1>
-              <p className={`small mb-0 fw-bold ${studyStats.percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
-                {studyStats.percentChange >= 0 ? '▲' : '▼'} {Math.abs(studyStats.percentChange)}% vs yesterday
+              <h6 className="text-muted small fw-bold text-uppercase">
+                Study Today
+              </h6>
+              <h1 className="fw-bold text-primary my-3 display-6">
+                {studyStats.today}
+              </h1>
+              <p
+                className={`small mb-0 fw-bold ${studyStats.percentChange >= 0 ? "text-success" : "text-danger"}`}
+              >
+                {studyStats.percentChange >= 0 ? "▲" : "▼"}{" "}
+                {Math.abs(studyStats.percentChange)}% vs yesterday
               </p>
             </div>
           </div>
@@ -296,7 +361,7 @@ const Dashboard = () => {
               <div className="position-absolute top-0 end-0 p-3 d-flex gap-2">
                 <button
                   type="button"
-                  className={`btn btn-sm rounded-circle p-1 border-0 ${mode === 'stopwatch' ? 'bg-primary text-white' : 'text-muted'}`}
+                  className={`btn btn-sm rounded-circle p-1 border-0 ${mode === "stopwatch" ? "bg-primary text-white" : "text-muted"}`}
                   onClick={switchToStopwatch}
                   title="Stopwatch"
                 >
@@ -304,8 +369,11 @@ const Dashboard = () => {
                 </button>
                 <button
                   type="button"
-                  className={`btn btn-sm rounded-circle p-1 border-0 ${mode === 'timer' ? 'bg-primary text-white' : 'text-muted'}`}
-                  onClick={() => { setTimerRunning(false); setShowTimerSetup(true); }}
+                  className={`btn btn-sm rounded-circle p-1 border-0 ${mode === "timer" ? "bg-primary text-white" : "text-muted"}`}
+                  onClick={() => {
+                    setTimerRunning(false);
+                    setShowTimerSetup(true);
+                  }}
                   title="Countdown"
                 >
                   <Hourglass size={16} />
@@ -313,24 +381,37 @@ const Dashboard = () => {
               </div>
 
               <h6 className="text-muted small fw-bold text-uppercase mb-2">
-                {mode === 'stopwatch' ? 'Stopwatch' : 'Countdown'}
+                {mode === "stopwatch" ? "Stopwatch" : "Countdown"}
               </h6>
 
-              <div className={`h1 fw-bold mb-3 font-monospace ${mode === 'timer' && elapsedTime <= 300 ? 'text-danger' : 'text-dark'}`}>
+              <div
+                className={`h1 fw-bold mb-3 font-monospace ${mode === "timer" && elapsedTime <= 300 ? "text-danger" : "text-dark"}`}
+              >
                 {formatClock(elapsedTime)}
               </div>
 
               <button
                 type="button"
-                className={`btn btn-lg rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2 ${timerRunning ? 'btn-danger' : 'btn-primary'}`}
+                className={`btn btn-lg rounded-pill px-4 py-2 shadow-sm d-flex align-items-center gap-2 ${timerRunning ? "btn-danger" : "btn-primary"}`}
                 onClick={() => {
-                  if (mode === 'timer' && elapsedTime === 0) { setShowTimerSetup(true); return; }
-                  if (timerRunning) { setTimerRunning(false); setShowLogDialog(true); }
-                  else setTimerRunning(true);
+                  if (mode === "timer" && elapsedTime === 0) {
+                    setShowTimerSetup(true);
+                    return;
+                  }
+                  if (timerRunning) {
+                    setTimerRunning(false);
+                    setShowLogDialog(true);
+                  } else setTimerRunning(true);
                 }}
               >
-                {timerRunning ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" />}
-                <span className="fw-bold small">{timerRunning ? 'PAUSE' : 'START'}</span>
+                {timerRunning ? (
+                  <Pause size={20} fill="white" />
+                ) : (
+                  <Play size={20} fill="white" />
+                )}
+                <span className="fw-bold small">
+                  {timerRunning ? "PAUSE" : "START"}
+                </span>
               </button>
             </div>
           </div>
@@ -345,15 +426,22 @@ const Dashboard = () => {
         <div className="row g-4">
           {/* Graph */}
           <div className="col-lg-8">
-            <div className="bg-white p-4 rounded-4 shadow-sm border" style={{ minHeight: 430 }}>
+            <div
+              className="bg-white p-4 rounded-4 shadow-sm border"
+              style={{ minHeight: 430 }}
+            >
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h6 className="fw-bold mb-0">Study Activity (Last 7 Days)</h6>
               </div>
 
-              <div style={{ width: '100%', height: 320 }}>
+              <div style={{ width: "100%", height: 320 }}>
                 <ResponsiveContainer>
                   <BarChart data={barData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f1f1" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#f1f1f1"
+                    />
                     <XAxis
                       dataKey="day"
                       axisLine={false}
@@ -361,10 +449,25 @@ const Dashboard = () => {
                       height={60}
                       tick={({ x, y, payload }) => (
                         <g transform={`translate(${x},${y})`}>
-                          <text x={0} y={10} dy={16} textAnchor="middle" fill="#374151" fontSize={12} fontWeight="bold">
+                          <text
+                            x={0}
+                            y={10}
+                            dy={16}
+                            textAnchor="middle"
+                            fill="#374151"
+                            fontSize={12}
+                            fontWeight="bold"
+                          >
                             {payload.value}
                           </text>
-                          <text x={0} y={30} dy={16} textAnchor="middle" fill="#9ca3af" fontSize={11}>
+                          <text
+                            x={0}
+                            y={30}
+                            dy={16}
+                            textAnchor="middle"
+                            fill="#9ca3af"
+                            fontSize={11}
+                          >
                             {barData[payload.index]?.date}
                           </text>
                         </g>
@@ -372,19 +475,29 @@ const Dashboard = () => {
                     />
                     <YAxis hide />
                     <Tooltip
-                      cursor={{ fill: '#f9fafb' }}
+                      cursor={{ fill: "#f9fafb" }}
                       content={({ active, payload }) =>
                         active && payload && payload.length ? (
                           <div className="bg-dark text-white p-2 px-3 rounded-3 shadow-sm small">
-                            <div className="fw-bold">{payload[0].payload.day} • {payload[0].payload.date}</div>
-                            <div className="text-light">{formatHms(payload[0].payload.rawSeconds)}</div>
+                            <div className="fw-bold">
+                              {payload[0].payload.day} •{" "}
+                              {payload[0].payload.date}
+                            </div>
+                            <div className="text-light">
+                              {formatHms(payload[0].payload.rawSeconds)}
+                            </div>
                           </div>
                         ) : null
                       }
                     />
                     <Bar dataKey="hours" radius={[6, 6, 0, 0]} barSize={40}>
                       {barData.map((_, i) => (
-                        <Cell key={i} fill={i === barData.length - 1 ? '#6366f1' : '#e0e7ff'} />
+                        <Cell
+                          key={i}
+                          fill={
+                            i === barData.length - 1 ? "#6366f1" : "#e0e7ff"
+                          }
+                        />
                       ))}
                     </Bar>
                   </BarChart>
@@ -410,13 +523,19 @@ const Dashboard = () => {
 
               <div className="d-flex flex-column gap-3">
                 {habits.length === 0 ? (
-                  <p className="text-muted small text-center my-4">No habits yet. Click + to add one.</p>
+                  <p className="text-muted small text-center my-4">
+                    No habits yet. Click + to add one.
+                  </p>
                 ) : (
-                  habits.map(h => (
+                  habits.map((h) => (
                     <div
                       key={h._id}
                       className="d-flex justify-content-between align-items-center p-3 border rounded-4"
-                      style={{ backgroundColor: h.completedToday ? '#f0fdf4' : '#fafafa' }}
+                      style={{
+                        backgroundColor: h.completedToday
+                          ? "#f0fdf4"
+                          : "#fafafa",
+                      }}
                     >
                       <div style={{ minWidth: 0 }}>
                         <div className="fw-bold small text-dark text-truncate">
@@ -424,17 +543,22 @@ const Dashboard = () => {
                         </div>
                         <div
                           className="d-flex align-items-center gap-1 mt-1"
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: "pointer" }}
                           title="View habit calendar"
                           onClick={() => setCalendarHabit(h)}
                         >
-                          <Flame size={13} style={{ color: h.streak > 0 ? '#ea580c' : '#9ca3af' }} />
+                          <Flame
+                            size={13}
+                            style={{
+                              color: h.streak > 0 ? "#ea580c" : "#9ca3af",
+                            }}
+                          />
                           <span
                             className="fw-bold"
                             style={{
-                              fontSize: '12px',
-                              color: h.streak > 0 ? '#ea580c' : '#9ca3af',
-                              textDecoration: 'underline dotted',
+                              fontSize: "12px",
+                              color: h.streak > 0 ? "#ea580c" : "#9ca3af",
+                              textDecoration: "underline dotted",
                             }}
                           >
                             {h.streak} day streak
@@ -445,9 +569,9 @@ const Dashboard = () => {
                       <div className="d-flex gap-2 align-items-center ms-2">
                         <button
                           type="button"
-                          className={`btn btn-sm rounded-circle shadow-sm ${h.completedToday ? 'btn-success' : 'btn-outline-secondary'}`}
+                          className={`btn btn-sm rounded-circle shadow-sm ${h.completedToday ? "btn-success" : "btn-outline-secondary"}`}
                           onClick={() => handleToggleHabit(h._id)}
-                          title={h.completedToday ? 'Mark undone' : 'Mark done'}
+                          title={h.completedToday ? "Mark undone" : "Mark done"}
                         >
                           <Check size={14} />
                         </button>
@@ -471,39 +595,63 @@ const Dashboard = () => {
 
       {/* Habit Calendar Modal */}
       {calendarHabit && (
-        <HabitCalendarModal habit={calendarHabit} onClose={() => setCalendarHabit(null)} />
+        <HabitCalendarModal
+          habit={calendarHabit}
+          onClose={() => setCalendarHabit(null)}
+        />
       )}
 
       {/* TIMER SETUP MODAL */}
       {showTimerSetup && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(5px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg text-center" style={{ width: 360 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(5px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg text-center"
+            style={{ width: 360 }}
+          >
             <Hourglass size={44} className="text-primary mb-2" />
             <h5 className="fw-bold mb-3">Set Countdown</h5>
 
-            <label className="text-muted small fw-bold mb-2">Duration (minutes)</label>
+            <label className="text-muted small fw-bold mb-2">
+              Duration (minutes)
+            </label>
             <input
               type="number"
               min={1}
               className="form-control form-control-lg text-center fw-bold rounded-3 mb-3"
               value={timerInput}
-              onChange={e => setTimerInput(e.target.value)}
+              onChange={(e) => setTimerInput(e.target.value)}
               autoFocus
             />
 
             <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
-              {[15, 30, 45, 60, 90, 120].map(m => (
-                <button key={m} type="button" className="btn btn-sm btn-outline-secondary rounded-pill" onClick={() => setTimerInput(m)}>
+              {[15, 30, 45, 60, 90, 120].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary rounded-pill"
+                  onClick={() => setTimerInput(m)}
+                >
                   {m}m
                 </button>
               ))}
             </div>
 
             <div className="d-flex gap-2">
-              <button type="button" className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3" onClick={startCountdown}>
+              <button
+                type="button"
+                className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3"
+                onClick={startCountdown}
+              >
                 Start
               </button>
-              <button type="button" className="btn btn-light py-2 px-3 rounded-3" onClick={() => setShowTimerSetup(false)}>
+              <button
+                type="button"
+                className="btn btn-light py-2 px-3 rounded-3"
+                onClick={() => setShowTimerSetup(false)}
+              >
                 Cancel
               </button>
             </div>
@@ -513,18 +661,28 @@ const Dashboard = () => {
 
       {/* LOG MODAL */}
       {showLogDialog && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(5px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg text-center" style={{ width: 380 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(5px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg text-center"
+            style={{ width: 380 }}
+          >
             <h5 className="fw-bold mb-2">
               Log {formatHms(getTimeStudied?.() ?? 0)}?
             </h5>
             <p className="text-muted small mb-4">
-              {mode === 'timer'
-                ? 'You stopped the countdown. You can log the time studied or reset.'
-                : 'You paused the stopwatch. Log your focused time?'}
+              {mode === "timer"
+                ? "You stopped the countdown. You can log the time studied or reset."
+                : "You paused the stopwatch. Log your focused time?"}
             </p>
             <div className="d-grid gap-2">
-              <button type="button" className="btn btn-primary py-2 fw-bold" onClick={handleLogSession}>
+              <button
+                type="button"
+                className="btn btn-primary py-2 fw-bold"
+                onClick={handleLogSession}
+              >
                 <Save className="me-2" size={18} /> Log Session
               </button>
               <button
@@ -533,7 +691,7 @@ const Dashboard = () => {
                 onClick={() => {
                   setShowLogDialog(false);
                   setTimerRunning(false);
-                  if (mode === 'stopwatch') setElapsedTime(0);
+                  if (mode === "stopwatch") setElapsedTime(0);
                   else setElapsedTime(initialTime || 0);
                 }}
               >
@@ -556,8 +714,14 @@ const Dashboard = () => {
 
       {/* ADD HABIT MODAL */}
       {showHabitModal && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg" style={{ width: 380 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg"
+            style={{ width: 380 }}
+          >
             <h5 className="fw-bold mb-3">New Habit</h5>
             <form onSubmit={handleAddHabit}>
               <input
@@ -569,10 +733,17 @@ const Dashboard = () => {
                 required
               />
               <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3">
+                <button
+                  type="submit"
+                  className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3"
+                >
                   Create
                 </button>
-                <button type="button" className="btn btn-light py-2 px-3 rounded-3" onClick={() => setShowHabitModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-light py-2 px-3 rounded-3"
+                  onClick={() => setShowHabitModal(false)}
+                >
                   Cancel
                 </button>
               </div>
@@ -583,8 +754,14 @@ const Dashboard = () => {
 
       {/* ADD TASK MODAL */}
       {showTaskModal && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg" style={{ width: 380 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg"
+            style={{ width: 380 }}
+          >
             <h5 className="fw-bold mb-3">Add Task</h5>
             <form onSubmit={handleAddTask}>
               <input
@@ -596,10 +773,17 @@ const Dashboard = () => {
                 required
               />
               <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3">
+                <button
+                  type="submit"
+                  className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3"
+                >
                   Add
                 </button>
-                <button type="button" className="btn btn-light py-2 px-3 rounded-3" onClick={() => setShowTaskModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-light py-2 px-3 rounded-3"
+                  onClick={() => setShowTaskModal(false)}
+                >
                   Cancel
                 </button>
               </div>
@@ -610,15 +794,23 @@ const Dashboard = () => {
 
       {/* ADD REMINDER MODAL */}
       {showReminderModal && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg" style={{ width: 380 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg"
+            style={{ width: 380 }}
+          >
             <h5 className="fw-bold mb-3">Set Reminder</h5>
             <form onSubmit={handleAddReminder}>
               <input
                 className="form-control rounded-3 mb-3 py-3 bg-light border-0"
                 placeholder="e.g., Submit assignment"
                 value={reminderForm.text}
-                onChange={(e) => setReminderForm({ ...reminderForm, text: e.target.value })}
+                onChange={(e) =>
+                  setReminderForm({ ...reminderForm, text: e.target.value })
+                }
                 autoFocus
                 required
               />
@@ -627,14 +819,23 @@ const Dashboard = () => {
                 min={todayStr}
                 className="form-control rounded-3 mb-3 py-3 bg-light border-0"
                 value={reminderForm.deadline}
-                onChange={(e) => setReminderForm({ ...reminderForm, deadline: e.target.value })}
+                onChange={(e) =>
+                  setReminderForm({ ...reminderForm, deadline: e.target.value })
+                }
                 required
               />
               <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3">
+                <button
+                  type="submit"
+                  className="btn btn-primary flex-grow-1 py-2 fw-bold rounded-3"
+                >
                   Save
                 </button>
-                <button type="button" className="btn btn-light py-2 px-3 rounded-3" onClick={() => setShowReminderModal(false)}>
+                <button
+                  type="button"
+                  className="btn btn-light py-2 px-3 rounded-3"
+                  onClick={() => setShowReminderModal(false)}
+                >
                   Cancel
                 </button>
               </div>
@@ -645,16 +846,32 @@ const Dashboard = () => {
 
       {/* DELETE HABIT MODAL */}
       {deleteHabitId && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style={{ zIndex: 9999, backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white p-4 rounded-4 shadow-lg text-center" style={{ width: 350 }}>
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+          style={{ zIndex: 9999, backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="bg-white p-4 rounded-4 shadow-lg text-center"
+            style={{ width: 350 }}
+          >
             <AlertCircle size={48} className="text-danger mb-2" />
             <h5 className="fw-bold mb-2">Delete habit?</h5>
-            <p className="text-muted small mb-3">This action can’t be undone.</p>
+            <p className="text-muted small mb-3">
+              This action can’t be undone.
+            </p>
             <div className="d-flex gap-2">
-              <button type="button" className="btn btn-danger flex-grow-1 py-2 fw-bold rounded-3" onClick={handleDeleteHabit}>
+              <button
+                type="button"
+                className="btn btn-danger flex-grow-1 py-2 fw-bold rounded-3"
+                onClick={handleDeleteHabit}
+              >
                 Delete
               </button>
-              <button type="button" className="btn btn-light py-2 px-3 rounded-3" onClick={() => setDeleteHabitId(null)}>
+              <button
+                type="button"
+                className="btn btn-light py-2 px-3 rounded-3"
+                onClick={() => setDeleteHabitId(null)}
+              >
                 Cancel
               </button>
             </div>
